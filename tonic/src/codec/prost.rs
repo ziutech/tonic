@@ -150,7 +150,10 @@ fn from_decode_error(error: prost::DecodeError) -> crate::Status {
 #[cfg(test)]
 mod tests {
     use crate::codec::compression::SingleMessageCompressionOverride;
-    use crate::codec::{DecodeBuf, Decoder, EncodeBody, EncodeBuf, Encoder, Streaming, HEADER_SIZE};
+    use crate::codec::encode::Role;
+    use crate::codec::{
+        DecodeBuf, Decoder, EncodeBody, EncodeBuf, Encoder, Streaming, HEADER_SIZE,
+    };
     use crate::Status;
     use bytes::{Buf, BufMut, BytesMut};
     use http_body::Body;
@@ -226,12 +229,13 @@ mod tests {
         let messages = std::iter::repeat_with(move || Ok::<_, Status>(msg.clone())).take(10000);
         let source = tokio_stream::iter(messages);
 
-        let mut body = pin!(EncodeBody::new_server(
+        let mut body = pin!(EncodeBody::new(
             encoder,
             source,
             None,
             SingleMessageCompressionOverride::default(),
             None,
+            Role::Server,
         ));
 
         while let Some(r) = body.frame().await {
@@ -248,12 +252,13 @@ mod tests {
         let messages = std::iter::once(Ok::<_, Status>(msg));
         let source = tokio_stream::iter(messages);
 
-        let mut body = pin!(EncodeBody::new_server(
+        let mut body = pin!(EncodeBody::new(
             encoder,
             source,
             None,
             SingleMessageCompressionOverride::default(),
             Some(MAX_MESSAGE_SIZE),
+            Role::Server,
         ));
 
         let frame = body
@@ -285,12 +290,13 @@ mod tests {
         let messages = std::iter::once(Ok::<_, Status>(msg));
         let source = tokio_stream::iter(messages);
 
-        let mut body = pin!(EncodeBody::new_server(
+        let mut body = pin!(EncodeBody::new(
             encoder,
             source,
             None,
             SingleMessageCompressionOverride::default(),
             Some(usize::MAX),
+            Role::Server,
         ));
 
         let frame = body

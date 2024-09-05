@@ -206,8 +206,10 @@ fn finish_encoding(
     Ok(())
 }
 
-#[derive(Debug)]
-enum Role {
+/// Role for use in encoding a body.
+#[allow(missing_docs)]
+#[derive(Clone, Copy, Debug)]
+pub enum Role {
     Client,
     Server,
 }
@@ -229,38 +231,15 @@ struct EncodeState {
 }
 
 impl<T: Encoder, U: Stream> EncodeBody<T, U> {
-    /// Turns a stream of grpc messages into [EncodeBody] which is used by grpc clients for
-    /// turning the messages into http frames for sending over the network.
-    pub fn new_client(
-        encoder: T,
-        source: U,
-        compression_encoding: Option<CompressionEncoding>,
-        max_message_size: Option<usize>,
-    ) -> Self {
-        Self {
-            inner: EncodedBytes::new(
-                encoder,
-                source,
-                compression_encoding,
-                SingleMessageCompressionOverride::default(),
-                max_message_size,
-            ),
-            state: EncodeState {
-                error: None,
-                role: Role::Client,
-                is_end_stream: false,
-            },
-        }
-    }
-
-    /// Turns a stream of grpc results (message or error status) into [EncodeBody] which is used by grpc
-    /// servers for turning the messages into http frames for sending over the network.
-    pub fn new_server(
+    /// Turns a stream of grpc results (message or error status) into [EncodeBody] which is
+    /// used for turning the messages into http frames for sending over the network.
+    pub fn new(
         encoder: T,
         source: U,
         compression_encoding: Option<CompressionEncoding>,
         compression_override: SingleMessageCompressionOverride,
         max_message_size: Option<usize>,
+        role: Role,
     ) -> Self {
         Self {
             inner: EncodedBytes::new(
@@ -272,7 +251,7 @@ impl<T: Encoder, U: Stream> EncodeBody<T, U> {
             ),
             state: EncodeState {
                 error: None,
-                role: Role::Server,
+                role,
                 is_end_stream: false,
             },
         }
