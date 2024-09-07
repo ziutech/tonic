@@ -1,7 +1,7 @@
 use crate::codec::compression::{
     CompressionEncoding, EnabledCompressionEncodings, SingleMessageCompressionOverride,
 };
-use crate::codec::{EncodeBody, Role};
+use crate::codec::{EncodeBody, Side};
 use crate::metadata::GRPC_CONTENT_TYPE;
 use crate::{
     body::BoxBody,
@@ -304,7 +304,7 @@ impl<T> Grpc<T> {
                     self.config.send_compression_encodings,
                     SingleMessageCompressionOverride::default(),
                     self.config.max_encoding_message_size,
-                    Role::Client,
+                    Side::Client,
                 )
             })
             .map(BoxBody::new);

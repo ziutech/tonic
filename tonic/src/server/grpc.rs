@@ -1,7 +1,7 @@
 use crate::codec::compression::{
     CompressionEncoding, EnabledCompressionEncodings, SingleMessageCompressionOverride,
 };
-use crate::codec::{EncodeBody, Role};
+use crate::codec::{EncodeBody, Side};
 use crate::metadata::GRPC_CONTENT_TYPE;
 use crate::{
     body::BoxBody,
@@ -454,7 +454,7 @@ where
             accept_encoding,
             compression_override,
             max_message_size,
-            Role::Server,
+            Side::Server,
         );
 
         http::Response::from_parts(parts, BoxBody::new(body))

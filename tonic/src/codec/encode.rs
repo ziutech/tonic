@@ -209,7 +209,7 @@ fn finish_encoding(
 /// Role for use in encoding a body.
 #[allow(missing_docs)]
 #[derive(Clone, Copy, Debug)]
-pub enum Role {
+pub enum Side {
     Client,
     Server,
 }
@@ -226,7 +226,7 @@ pub struct EncodeBody<T, U> {
 #[derive(Debug)]
 struct EncodeState {
     error: Option<Status>,
-    role: Role,
+    role: Side,
     is_end_stream: bool,
 }
 
@@ -239,7 +239,7 @@ impl<T: Encoder, U: Stream> EncodeBody<T, U> {
         compression_encoding: Option<CompressionEncoding>,
         compression_override: SingleMessageCompressionOverride,
         max_message_size: Option<usize>,
-        role: Role,
+        role: Side,
     ) -> Self {
         Self {
             inner: EncodedBytes::new(
@@ -261,8 +261,8 @@ impl<T: Encoder, U: Stream> EncodeBody<T, U> {
 impl EncodeState {
     fn trailers(&mut self) -> Option<Result<HeaderMap, Status>> {
         match self.role {
-            Role::Client => None,
-            Role::Server => {
+            Side::Client => None,
+            Side::Server => {
                 if self.is_end_stream {
                     return None;
                 }
@@ -299,8 +299,8 @@ where
         match ready!(self_proj.inner.poll_next(cx)) {
             Some(Ok(d)) => Some(Ok(Frame::data(d))).into(),
             Some(Err(status)) => match self_proj.state.role {
-                Role::Client => Some(Err(status)).into(),
-                Role::Server => {
+                Side::Client => Some(Err(status)).into(),
+                Side::Server => {
                     self_proj.state.is_end_stream = true;
                     Some(Ok(Frame::trailers(status.to_header_map()?))).into()
                 }

@@ -150,7 +150,7 @@ fn from_decode_error(error: prost::DecodeError) -> crate::Status {
 #[cfg(test)]
 mod tests {
     use crate::codec::compression::SingleMessageCompressionOverride;
-    use crate::codec::encode::Role;
+    use crate::codec::encode::Side;
     use crate::codec::{
         DecodeBuf, Decoder, EncodeBody, EncodeBuf, Encoder, Streaming, HEADER_SIZE,
     };
@@ -235,7 +235,7 @@ mod tests {
             None,
             SingleMessageCompressionOverride::default(),
             None,
-            Role::Server,
+            Side::Server,
         ));
 
         while let Some(r) = body.frame().await {
@@ -258,7 +258,7 @@ mod tests {
             None,
             SingleMessageCompressionOverride::default(),
             Some(MAX_MESSAGE_SIZE),
-            Role::Server,
+            Side::Server,
         ));
 
         let frame = body
@@ -296,7 +296,7 @@ mod tests {
             None,
             SingleMessageCompressionOverride::default(),
             Some(usize::MAX),
-            Role::Server,
+            Side::Server,
         ));
 
         let frame = body
